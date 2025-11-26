@@ -1,0 +1,86 @@
+/* Sedentary Reminder Module Styles */
+
+/* Module Container */
+#sedentary-tracker {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #fafafa;
+}
+
+/* Module Header */
+#sedentary-tracker h2 {
+    margin-top: 0;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+    color: #0056b3;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+/* Description Text */
+#sedentary-tracker p {
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+/* Timer Display */
+#sedentary-timer-display {
+    font-size: 2.8em;
+    font-weight: bold;
+    text-align: center;
+    color: #dc3545;
+    margin: 20px 0;
+    background: #fff5f5;
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid #dc3545;
+}
+
+/* Buttons */
+#start-sedentary-timer,
+#reset-sedentary-timer {
+    padding: 12px 18px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: all 0.3s ease;
+}
+
+/* Start Button Style */
+#start-sedentary-timer {
+    background-color: #007bff;
+    color: white;
+}
+
+#start-sedentary-timer:hover {
+    background-color: #0056b3;
+}
+
+/* Reset Button Style */
+#reset-sedentary-timer {
+    background-color: #6c757d;
+    color: white;
+}
+
+#reset-sedentary-timer:hover {
+    background-color: #555b61;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    #sedentary-timer-display {
+        font-size: 2em;
+    }
+
+    #start-sedentary-timer,
+    #reset-sedentary-timer {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
