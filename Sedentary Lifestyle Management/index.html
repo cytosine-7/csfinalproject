@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>.header-bar { background-color: transparent; }</style>
+</head>
+<body>
+    <div id="overlay" onclick="closeNav()"></div>
+
+    <div id="mySidenav" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="index.html" style="color: white;">📊 Dashboard</a>
+        <a href="profile.html">👤 User Profile</a>
+        <a href="water.html">💧 Water Tracker</a>
+        <a href="sedentary.html">🧘 Sedentary Timer</a>
+        <a href="sleep.html">😴 Sleep Manager</a>
+    </div>
+
+    <div class="header-bar">
+        <span class="menu-icon" onclick="openNav()">&#9776;</span>
+    </div>
+
+    <div class="container" style="margin-top: 0;">
+        <h2>👋 Welcome Back</h2>
+        <p>Click the menu icon (☰) to access tools.</p>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>💧 Water Today</h3>
+                <div class="stat-number" id="display-water">0</div>
+                <span>mL</span>
+            </div>
+            <div class="stat-card">
+                <h3>😴 Last Sleep</h3>
+                <div class="stat-number" id="display-sleep">--</div>
+                <span>hours</span>
+            </div>
+            <div class="stat-card">
+                <h3>⚖️ BMI</h3>
+                <div class="stat-number" id="display-bmi">--</div>
+                <span id="bmi-text" style="font-size:0.8em">--</span>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px;">
+            <button onclick="clearAllData()" class="secondary" style="width: auto; font-size: 0.9em;">Clear All Data</button>
+        </div>
+    </div>
+
+    <script>
+        function openNav() { document.getElementById("mySidenav").style.width = "250px"; document.getElementById("overlay").style.display = "block"; }
+        function closeNav() { document.getElementById("mySidenav").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
+
+        window.onload = function() {
+            // 1. Water
+            const water = localStorage.getItem('totalWater') || 0;
+            document.getElementById('display-water').textContent = water;
+
+            // 2. Sleep (讀取紀錄列表中的第一筆)
+            const sleepData = localStorage.getItem('sleepRecords');
+            if (sleepData) {
+                const records = JSON.parse(sleepData);
+                if (records.length > 0) {
+                    document.getElementById('display-sleep').textContent = records[0].hours;
+                }
+            }
+
+            // 3. BMI
+            const h = localStorage.getItem('profileHeight');
+            const w = localStorage.getItem('profileWeight');
+            if(h && w) {
+                const heightInMeters = h / 100;
+                const bmi = (w / (heightInMeters * heightInMeters)).toFixed(1);
+                document.getElementById('display-bmi').textContent = bmi;
+            }
+        };
+
+        function clearAllData() {
+            if(confirm('Are you sure you want to clear all data?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,86 +1,111 @@
-/* Sedentary Reminder Module Styles */
+/* style.css - 完整樣式表 (v2.0) */
 
-/* Module Container */
-#sedentary-tracker {
-    margin-bottom: 30px;
-    padding: 20px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    background-color: #fafafa;
+/* === 1. 全域基本設定 === */
+body {
+    font-family: 'Helvetica', 'Arial', '微軟正黑體', sans-serif;
+    background-color: #f4f7f6;
+    margin: 0;
+    padding: 0;
+    color: #333;
 }
 
-/* Module Header */
-#sedentary-tracker h2 {
-    margin-top: 0;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 10px;
-    color: #0056b3;
-    font-size: 1.5em;
-    font-weight: bold;
+h1, h2, h3 { color: #333; text-align: center; }
+
+/* === 2. 內容容器 === */
+.container {
+    max-width: 600px;
+    margin: 20px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-/* Description Text */
-#sedentary-tracker p {
-    font-size: 1em;
-    color: #555;
-    margin-bottom: 15px;
+/* === 3. 漢堡選單 (Hamburger Menu) === */
+.header-bar {
+    background-color: transparent;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-/* Timer Display */
-#sedentary-timer-display {
-    font-size: 2.8em;
-    font-weight: bold;
-    text-align: center;
-    color: #dc3545;
-    margin: 20px 0;
-    background: #fff5f5;
-    padding: 15px;
-    border-radius: 8px;
-    border: 2px solid #dc3545;
-}
-
-/* Buttons */
-#start-sedentary-timer,
-#reset-sedentary-timer {
-    padding: 12px 18px;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: none;
+.menu-icon {
+    font-size: 30px;
     cursor: pointer;
-    margin-right: 10px;
-    transition: all 0.3s ease;
+    line-height: 1;
+    color: #333;
+    transition: color 0.3s;
+}
+.menu-icon:hover { color: #007bff; }
+
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 999;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.3s;
+    padding-top: 60px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.5);
 }
 
-/* Start Button Style */
-#start-sedentary-timer {
-    background-color: #007bff;
-    color: white;
+.sidenav a {
+    padding: 10px 10px 10px 32px;
+    text-decoration: none;
+    font-size: 20px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+.sidenav a:hover { color: #f1f1f1; background-color: #333; }
+.sidenav .closebtn { position: absolute; top: 0; right: 25px; font-size: 36px; margin-left: 50px; }
+
+#overlay {
+    position: fixed; display: none; width: 100%; height: 100%;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0,0,0,0.5); z-index: 500; cursor: pointer;
 }
 
-#start-sedentary-timer:hover {
-    background-color: #0056b3;
+/* === 4. 主頁儀表板 (Dashboard) === */
+.stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;
 }
-
-/* Reset Button Style */
-#reset-sedentary-timer {
-    background-color: #6c757d;
-    color: white;
+.stat-card {
+    background: #f8f9fa; padding: 20px; border-radius: 8px;
+    text-align: center; border: 1px solid #e9ecef;
 }
+.stat-number { font-size: 2em; font-weight: bold; color: #28a745; margin: 10px 0; }
 
-#reset-sedentary-timer:hover {
-    background-color: #555b61;
+/* === 5. 表單元素 === */
+input, button, select {
+    width: 100%; padding: 12px; margin: 10px 0;
+    box-sizing: border-box; border-radius: 5px;
+    border: 1px solid #ccc; font-size: 16px;
 }
+button { background-color: #007bff; color: white; border: none; cursor: pointer; transition: background 0.3s; }
+button:hover { background-color: #0056b3; }
+button.secondary { background-color: #6c757d; }
+button.danger-btn { background-color: #ffe8ea; color: #9a1f2b; border: 1px solid #ffb6c1; }
+button.danger-btn:hover { background-color: #ffcdd2; }
+button.small { width: auto; padding: 5px 10px; font-size: 0.85em; margin: 0; }
 
-/* Responsive */
-@media (max-width: 480px) {
-    #sedentary-timer-display {
-        font-size: 2em;
-    }
+/* === 6. 特殊樣式 (表格與 Badge) === */
+table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+th { color: #666; font-weight: 600; }
 
-    #start-sedentary-timer,
-    #reset-sedentary-timer {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-}
+.badge { display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+.badge.ok { background: #e6ffef; color: #0b8a4a; }
+.badge.warn { background: #fff4e6; color: #9a4a00; }
 
+/* 久坐計時器 */
+#sedentary-timer-display { font-size: 3em; font-weight: bold; text-align: center; color: #dc3545; margin: 20px 0; }
+/* BMI */
+.bmi-result { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-radius: 8px; text-align: center; display: none; }
+.bmi-value { font-size: 2.5rem; font-weight: bold; color: #007bff; }

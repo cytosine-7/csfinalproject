@@ -4,29 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sedentary Reminder</title>
-
-    <!-- Link to Sedentary CSS -->
     <link rel="stylesheet" href="style.css">
-
+    <style>.header-bar { background-color: transparent; }</style>
 </head>
 <body>
+    <div id="overlay" onclick="closeNav()"></div>
 
-    <a href="../index.html" class="back-home">⬅ back to homepage</a>
-    
-    <div class="container">
-        <section class="module" id="sedentary-tracker">
-            <h2>🧘 Sedentary Reminder</h2>
-            <p>Set a timer (e.g., 30 mins) to remind yourself to get up and move.</p>
+    <div id="mySidenav" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="index.html">📊 Dashboard</a>
+        <a href="profile.html">👤 User Profile</a>
+        <a href="water.html">💧 Water Tracker</a>
+        <a href="sedentary.html" style="color: white;">🧘 Sedentary Timer</a>
+        <a href="sleep.html">😴 Sleep Manager</a>
+    </div>
 
-            <div id="sedentary-timer-display">30:00</div>
+    <div class="header-bar">
+        <span class="menu-icon" onclick="openNav()">&#9776;</span>
+    </div>
 
-            <button id="start-sedentary-timer">Start 30-Min Timer</button>
-            <button id="reset-sedentary-timer">Reset Timer</button>
-        </section>
+    <div class="container" style="margin-top: 0;">
+        <h2>🧘 Sedentary Reminder</h2>
+        <p>Set a timer (e.g., 30 mins) to remind yourself to get up and move.</p>
+
+        <div id="sedentary-timer-display">30:00</div>
+
+        <button id="start-sedentary-timer">Start 30-Min Timer</button>
+        <button id="reset-sedentary-timer" class="secondary">Reset Timer</button>
     </div>
 
     <script>
-        // --- Sedentary Timer Logic ---
+        function openNav() { document.getElementById("mySidenav").style.width = "250px"; document.getElementById("overlay").style.display = "block"; }
+        function closeNav() { document.getElementById("mySidenav").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
+
         const startTimerBtn = document.getElementById('start-sedentary-timer');
         const resetTimerBtn = document.getElementById('reset-sedentary-timer');
         const timerDisplay = document.getElementById('sedentary-timer-display');
@@ -42,9 +52,7 @@
         }
 
         startTimerBtn.addEventListener('click', () => {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-            }
+            if (timerInterval) clearInterval(timerInterval);
 
             timerInterval = setInterval(() => {
                 secondsRemaining--;
@@ -60,18 +68,12 @@
         });
 
         resetTimerBtn.addEventListener('click', () => {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-            }
+            if (timerInterval) clearInterval(timerInterval);
             secondsRemaining = defaultMinutes * 60;
             updateTimerDisplay();
-            alert('Timer reset.');
         });
 
-        // Initialize display on page load
         updateTimerDisplay();
     </script>
-
 </body>
 </html>
-
