@@ -85,19 +85,20 @@
     const alertBox = document.getElementById('alertBox');
     const cupWater = document.getElementById('cupWater');
 
-    // 讀取歷史紀錄
+    // 讀取飲水紀錄
     let records = JSON.parse(localStorage.getItem('waterRecords') || '[]');
 
     // 讀取體重
     let profile = JSON.parse(localStorage.getItem('profile') || '{}');
 
-    // 設定每日目標
-    let dailyGoal = 2000;
+    // 每日目標
+    let dailyGoal = 2000;  // 預設 2000
+
     if (profile.weight && Number(profile.weight) > 0) {
-        dailyGoal = Number(profile.weight) * 30;
+        dailyGoal = Number(profile.weight) * 30;  // 體重 * 30 c.c.
     }
 
-    // 計算今日攝取
+    // 今日飲水總量
     function getTodayTotal() {
         const today = new Date().toLocaleDateString();
         return records
@@ -105,7 +106,7 @@
             .reduce((a, b) => a + b.amount, 0);
     }
 
-    // 更新水杯 + 達標提示
+    // 更新水杯 & 顯示是否達標
     function updateCup() {
         const total = getTodayTotal();
         const ratio = Math.min(total / dailyGoal, 1);
@@ -117,6 +118,7 @@
         }
     }
 
+    // ➕ 新增喝水
     addBtn.addEventListener('click', () => {
         alertBox.innerHTML = "";
         const amount = Number(waterAmount.value);
@@ -136,17 +138,24 @@
         alertBox.innerHTML = `<span class="badge ok">+${amount} ml</span>`;
     });
 
+    // 🗑 清除全部
     clearBtn.addEventListener('click', () => {
         if (!confirm("Clear all history?")) return;
         records = [];
         localStorage.removeItem('waterRecords');
-        alertBox.innerHTML = "";
         render();
+        alertBox.innerHTML = "";
     });
 
+    // 顯示紀錄
     function render() {
         recordsTableBody.innerHTML = "";
-        summary.style.display = records.length === 0 ? "block" : "none";
+
+        if (records.length === 0) {
+            summary.style.display = "block";
+        } else {
+            summary.style.display = "none";
+        }
 
         for (const r of records) {
             const tr = document.createElement("tr");
@@ -163,7 +172,7 @@
         updateCup();
     }
 
-    window.deleteRecord = function (id) {
+    window.deleteRecord = function(id) {
         records = records.filter(x => x.id !== id);
         localStorage.setItem('waterRecords', JSON.stringify(records));
         render();
