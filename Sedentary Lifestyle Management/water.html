@@ -68,8 +68,14 @@
     </div>
 
     <script>
-        function openNav(){ document.getElementById("mySidenav").style.width = "250px"; document.getElementById("overlay").style.display = "block"; }
-        function closeNav(){ document.getElementById("mySidenav").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
+        function openNav() {
+            document.getElementById("mySidenav").style.width = "250px";
+            document.getElementById("overlay").style.display = "block";
+        }
+        function closeNav() {
+            document.getElementById("mySidenav").style.width = "0";
+            document.getElementById("overlay").style.display = "none";
+        }
 
         const waterAmount = document.getElementById('waterAmount');
         const addBtn = document.getElementById('addWaterBtn');
@@ -80,26 +86,24 @@
         const cupWater = document.getElementById('cupWater');
 
         let records = JSON.parse(localStorage.getItem('waterRecords') || '[]');
-        render();
-
         const dailyGoal = 2000;
 
-        function getTodayTotal(){
+        function getTodayTotal() {
             const today = new Date().toLocaleDateString();
-            return records.filter(r => r.date === today).reduce((a,b)=>a+b.amount,0);
+            return records.filter(r => r.date === today).reduce((a, b) => a + b.amount, 0);
         }
 
-        function updateCup(){
+        function updateCup() {
             const total = getTodayTotal();
             const ratio = Math.min(total / dailyGoal, 1);
             const height = 100 - ratio * 100;
             cupWater.style.height = height + "%";
         }
 
-        addBtn.addEventListener('click', ()=>{
+        addBtn.addEventListener('click', () => {
             alertBox.innerHTML = "";
             const amount = Number(waterAmount.value);
-            if(amount <= 0) return alert("Please enter a valid amount.");
+            if (amount <= 0) return alert("Please enter a valid amount.");
 
             const item = {
                 id: Date.now(),
@@ -115,22 +119,23 @@
             alertBox.innerHTML = `<span class="badge ok">+${amount} ml</span>`;
         });
 
-        clearBtn.addEventListener('click', ()=>{
-            if(!confirm("Clear all history?")) return;
+        clearBtn.addEventListener('click', () => {
+            if (!confirm("Clear all history?")) return;
             records = [];
             localStorage.removeItem('waterRecords');
             render();
+            alertBox.innerHTML = "";
         });
 
-        function render(){
+        function render() {
             recordsTableBody.innerHTML = "";
-            if(records.length === 0){
+            if (records.length === 0) {
                 summary.style.display = "block";
             } else {
                 summary.style.display = "none";
             }
 
-            for(const r of records){
+            for (const r of records) {
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td>${r.date}</td>
@@ -145,11 +150,14 @@
             updateCup();
         }
 
-        window.deleteRecord = function(id){
+        window.deleteRecord = function(id) {
             records = records.filter(x => x.id !== id);
             localStorage.setItem('waterRecords', JSON.stringify(records));
             render();
         };
+
+        
+        render();
     </script>
 </body>
 </html>
