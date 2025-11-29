@@ -67,118 +67,118 @@
         </div>
     </div>
 
-<script>
-    function openNav() {
-        document.getElementById("mySidenav").style.width = "250px";
-        document.getElementById("overlay").style.display = "block";
-    }
-    function closeNav() {
-        document.getElementById("mySidenav").style.width = "0";
-        document.getElementById("overlay").style.display = "none";
-    }
-
-    const waterAmount = document.getElementById('waterAmount');
-    const addBtn = document.getElementById('addWaterBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const recordsTableBody = document.querySelector('#recordsTable tbody');
-    const summary = document.getElementById('summary');
-    const alertBox = document.getElementById('alertBox');
-    const cupWater = document.getElementById('cupWater');
-
-    // 讀取飲水紀錄
-    let records = JSON.parse(localStorage.getItem('waterRecords') || '[]');
-
-    // 讀取體重
-    let profile = JSON.parse(localStorage.getItem('profile') || '{}');
-
-    // 每日目標
-    let dailyGoal = 2000;  // 預設 2000
-
-    if (profile.weight && Number(profile.weight) > 0) {
-        dailyGoal = Number(profile.weight) * 30;  // 體重 * 30 c.c.
-    }
-
-    // 今日飲水總量
-    function getTodayTotal() {
-        const today = new Date().toLocaleDateString();
-        return records
-            .filter(r => r.date === today)
-            .reduce((a, b) => a + b.amount, 0);
-    }
-
-    // 更新水杯 & 顯示是否達標
-    function updateCup() {
-        const total = getTodayTotal();
-        const ratio = Math.min(total / dailyGoal, 1);
-        const height = 100 - ratio * 100;
-        cupWater.style.height = height + "%";
-
-        if (total >= dailyGoal) {
-            alertBox.innerHTML = `<span class="badge ok">🎉 本日飲水已達標！</span>`;
+    <script>
+        /* ===== 側邊欄 ===== */
+        function openNav() {
+            document.getElementById("mySidenav").style.width = "250px";
+            document.getElementById("overlay").style.display = "block";
         }
-    }
+        function closeNav() {
+            document.getElementById("mySidenav").style.width = "0";
+            document.getElementById("overlay").style.display = "none";
+        }
 
-    // ➕ 新增喝水
-    addBtn.addEventListener('click', () => {
-        alertBox.innerHTML = "";
-        const amount = Number(waterAmount.value);
-        if (amount <= 0) return alert("Please enter a valid amount.");
+        /* ===== DOM ===== */
+        const waterAmount = document.getElementById('waterAmount');
+        const addBtn = document.getElementById('addWaterBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const recordsTableBody = document.querySelector('#recordsTable tbody');
+        const summary = document.getElementById('summary');
+        const alertBox = document.getElementById('alertBox');
+        const cupWater = document.getElementById('cupWater');
 
-        const item = {
-            id: Date.now(),
-            amount,
-            date: new Date().toLocaleDateString()
+        /* ===== 讀取飲水紀錄 ===== */
+        let records = JSON.parse(localStorage.getItem('waterRecords') || '[]');
+
+        /* ===== 讀取體重（profile.html 儲存） ===== */
+        let profile = JSON.parse(localStorage.getItem('profile') || '{}');
+
+        /* ===== 計算每日飲水目標 ===== */
+        let dailyGoal = 2000; // 預設 2000ml
+        if (profile.weight && Number(profile.weight) > 0) {
+            dailyGoal = Number(profile.weight) * 30;  
+        }
+
+        /* ===== 計算今日總喝水量 ===== */
+        function getTodayTotal() {
+            const today = new Date().toLocaleDateString();
+            return records
+                .filter(r => r.date === today)
+                .reduce((a, b) => a + b.amount, 0);
+        }
+
+        /* ===== 更新水杯 ===== */
+        function updateCup() {
+            const total = getTodayTotal();
+            const ratio = Math.min(total / dailyGoal, 1);
+            const height = 100 - ratio * 100;
+            cupWater.style.height = height + "%";
+
+            // 顯示是否達標
+            if (total >= dailyGoal) {
+                alertBox.innerHTML = `<span class="badge ok">🎉 本日飲水已達標！</span>`;
+            }
+        }
+
+        /* ===== 新增紀錄 ===== */
+        addBtn.addEventListener('click', () => {
+            alertBox.innerHTML = "";
+            const amount = Number(waterAmount.value);
+            if (amount <= 0) return alert("Please enter a valid amount.");
+
+            const item = {
+                id: Date.now(),
+                amount,
+                date: new Date().toLocaleDateString()
+            };
+
+            records.unshift(item); // 新紀錄放最上面
+            localStorage.setItem('waterRecords', JSON.stringify(records));
+            waterAmount.value = "";
+            render();
+
+            alertBox.innerHTML = `<span class="badge ok">+${amount} ml</span>`;
+        });
+
+        /* ===== 清除紀錄 ===== */
+        clearBtn.addEventListener('click', () => {
+            if (!confirm("Clear all history?")) return;
+            records = [];
+            localStorage.removeItem('waterRecords');
+            render();
+            alertBox.innerHTML = "";
+        });
+
+        /* ===== 顯示表格 ===== */
+        function render() {
+            recordsTableBody.innerHTML = "";
+
+            summary.style.display = records.length === 0 ? "block" : "none";
+
+            for (const r of records) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${r.date}</td>
+                    <td>${r.amount}</td>
+                    <td style="text-align:center">
+                        <button class="danger-btn small" onclick="deleteRecord(${r.id})">×</button>
+                    </td>
+                `;
+                recordsTableBody.appendChild(tr);
+            }
+
+            updateCup();
+        }
+
+        /* ===== 刪除單筆 ===== */
+        window.deleteRecord = function(id) {
+            records = records.filter(x => x.id !== id);
+            localStorage.setItem('waterRecords', JSON.stringify(records));
+            render();
         };
 
-        records.unshift(item);
-        localStorage.setItem('waterRecords', JSON.stringify(records));
-        waterAmount.value = "";
+        /* ===== 初始化 ===== */
         render();
-
-        alertBox.innerHTML = `<span class="badge ok">+${amount} ml</span>`;
-    });
-
-    // 🗑 清除全部
-    clearBtn.addEventListener('click', () => {
-        if (!confirm("Clear all history?")) return;
-        records = [];
-        localStorage.removeItem('waterRecords');
-        render();
-        alertBox.innerHTML = "";
-    });
-
-    // 顯示紀錄
-    function render() {
-        recordsTableBody.innerHTML = "";
-
-        if (records.length === 0) {
-            summary.style.display = "block";
-        } else {
-            summary.style.display = "none";
-        }
-
-        for (const r of records) {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${r.date}</td>
-                <td>${r.amount}</td>
-                <td style="text-align:center">
-                    <button class="danger-btn small" onclick="deleteRecord(${r.id})">×</button>
-                </td>
-            `;
-            recordsTableBody.appendChild(tr);
-        }
-
-        updateCup();
-    }
-
-    window.deleteRecord = function(id) {
-        records = records.filter(x => x.id !== id);
-        localStorage.setItem('waterRecords', JSON.stringify(records));
-        render();
-    };
-
-    render();
-</script>
+    </script>
 </body>
 </html>
