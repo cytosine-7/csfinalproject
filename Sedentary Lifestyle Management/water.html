@@ -125,10 +125,10 @@ console.log("今日飲水目標：", dailyGoal, "mL");
             progressText.textContent = `${total} / ${dailyGoal} ml`;
 
             // 達標提示
-            if (total >= dailyGoal) {
-                alertBox.innerHTML = `<span class="badge ok">🎉 本日飲水已達標！</span>`;
-            }
-        }
+            if (totalBefore + amount < dailyGoal) {
+    alertBox.innerHTML = `<span class="badge ok">+${amount} ml</span>`;
+}
+
 
         /* ===== 新增紀錄 ===== */
         addBtn.addEventListener('click', () => {
