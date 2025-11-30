@@ -95,35 +95,15 @@
         let records = JSON.parse(localStorage.getItem('waterRecords') || '[]');
 
         /* ===== 讀取體重（from profile.html） ===== */
-        let profile = JSON.parse(localStorage.getItem('profile') || '{}');
-
+        let savedWeight = localStorage.getItem('profileWeight');
 let dailyGoal = 2000;
 
-// 可能的體重欄位名稱列表（不動 profile，只讓 water.html 適應它）
-const possibleWeightKeys = [
-    'weight',
-    'userWeight',
-    'bodyWeight',
-    'weightInput',
-    'w',
-    'user_weight'
-];
-
-// 找出 profile 中存在且是數字的 key
-let weight = null;
-for (const key of possibleWeightKeys) {
-    if (profile[key] && !isNaN(profile[key])) {
-        weight = Number(profile[key]);
-        break;
-    }
+if (savedWeight && !isNaN(savedWeight)) {
+    dailyGoal = Number(savedWeight) * 30;
 }
 
-if (weight && weight > 0) {
-    dailyGoal = weight * 30;
-}
-
-console.log('偵測到的體重：', weight);
-console.log('今日飲水目標 (ml)：', dailyGoal);
+console.log("偵測到的體重：", savedWeight);
+console.log("今日飲水目標：", dailyGoal, "mL");
 
 
         /* ===== 今日喝水量 ===== */
