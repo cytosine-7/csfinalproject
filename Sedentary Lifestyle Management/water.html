@@ -97,11 +97,34 @@
         /* ===== 讀取體重（from profile.html） ===== */
         let profile = JSON.parse(localStorage.getItem('profile') || '{}');
 
-        /* ===== 每日喝水目標 ===== */
-        let dailyGoal = 2000;
-        if (profile.weight && Number(profile.weight) > 0) {
-            dailyGoal = Number(profile.weight) * 30;
-        }
+let dailyGoal = 2000;
+
+// 可能的體重欄位名稱列表（不動 profile，只讓 water.html 適應它）
+const possibleWeightKeys = [
+    'weight',
+    'userWeight',
+    'bodyWeight',
+    'weightInput',
+    'w',
+    'user_weight'
+];
+
+// 找出 profile 中存在且是數字的 key
+let weight = null;
+for (const key of possibleWeightKeys) {
+    if (profile[key] && !isNaN(profile[key])) {
+        weight = Number(profile[key]);
+        break;
+    }
+}
+
+if (weight && weight > 0) {
+    dailyGoal = weight * 30;
+}
+
+console.log('偵測到的體重：', weight);
+console.log('今日飲水目標 (ml)：', dailyGoal);
+
 
         /* ===== 今日喝水量 ===== */
         function getTodayTotal() {
