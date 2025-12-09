@@ -10,13 +10,12 @@
         .container { padding: 20px; font-family: Arial, sans-serif; }
         #stairs-display { font-size: 24px; margin: 10px 0; }
         input { padding: 5px; margin-right: 10px; margin-top: 5px; }
-        button { padding: 5px 10px; margin-right: 5px; margin-top: 5px; }
-        .secondary { background-color: #ccc; }
         label { display: block; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div id="overlay" onclick="closeNav()"></div>
+    <div id="toast"></div>
 
     <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
@@ -34,37 +33,30 @@
 
     <div class="container">
         <h2>🪜 Stairs Tracker</h2>
-        <p>Click +1 every time you complete one floor, or enter floors to calculate stairs.</p>
+        <p>Click +1 every time you complete one floor.</p>
 
-        <!-- 按 +1 樓層 -->
         <div>
             <button id="add-floor-btn">+1 Floor</button>
-            <button id="reset-floor-btn" class="secondary">Reset Count</button>
+            <button id="reset-floor-btn" class="secondary">Reset</button>
         </div>
 
         <div id="stairs-display">0 Floors / 0 Stairs</div>
 
-        <!-- 輸入樓層自動算樓梯 -->
         <div style="margin-top: 15px;">
             <label for="floor-input">Enter floors:</label>
             <input type="number" id="floor-input" placeholder="Floors" min="0">
-
             <label for="stairs-input">Stairs per floor:</label>
             <input type="number" id="stairs-input" placeholder="Stairs per floor" min="1" value="20">
-
-            <button id="calculate-btn">Calculate Stairs</button>
+            <button id="calculate-btn">Calculate</button>
         </div>
     </div>
 
     <script>
-        // 側邊欄功能
-        function openNav() { 
-            document.getElementById("mySidenav").style.width = "250px"; 
-            document.getElementById("overlay").style.display = "block"; 
-        }
-        function closeNav() { 
-            document.getElementById("mySidenav").style.width = "0"; 
-            document.getElementById("overlay").style.display = "none"; 
+        function openNav() { document.getElementById("mySidenav").style.width = "250px"; document.getElementById("overlay").style.display = "block"; }
+        function closeNav() { document.getElementById("mySidenav").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
+        function showToast(msg) {
+            const t = document.getElementById("toast"); t.textContent = msg; t.className = "show";
+            setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
         }
 
         let floors = 0;
@@ -73,36 +65,23 @@
         const addBtn = document.getElementById('add-floor-btn');
         const resetBtn = document.getElementById('reset-floor-btn');
         const display = document.getElementById('stairs-display');
-
         const input = document.getElementById('floor-input');
         const stairsInput = document.getElementById('stairs-input');
         const calculateBtn = document.getElementById('calculate-btn');
 
-        // 更新顯示
         function updateDisplay() {
             const totalStairs = floors * stairsPerFloor;
             display.textContent = `${floors} Floor${floors === 1 ? '' : 's'} / ${totalStairs} Stairs`;
         }
 
-        // +1 樓層按鈕
-        addBtn.addEventListener('click', () => {
-            floors++;
-            updateDisplay();
-        });
-
-        // 重置
-        resetBtn.addEventListener('click', () => {
-            floors = 0;
-            updateDisplay();
-        });
-
-        // 輸入樓層自動算樓梯
+        addBtn.addEventListener('click', () => { floors++; updateDisplay(); showToast('+1 Floor'); });
+        resetBtn.addEventListener('click', () => { floors = 0; updateDisplay(); showToast('Reset'); });
         calculateBtn.addEventListener('click', () => {
             floors = parseInt(input.value) || 0;
             stairsPerFloor = parseInt(stairsInput.value) || 20;
             updateDisplay();
+            showToast('Calculated!');
         });
-
         updateDisplay();
     </script>
 </body>

@@ -9,6 +9,7 @@
 </head>
 <body>
     <div id="overlay" onclick="closeNav()"></div>
+    <div id="toast"></div>
 
     <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
@@ -16,8 +17,8 @@
         <a href="profile.html" style="color: white;">👤 User Profile</a>
         <a href="water.html">💧 Water Tracker</a>
         <a href="sedentary.html">🪑 Sedentary Timer</a>
-        <a href="sleep.html">😴 Sleep Manager</a>
         <a href="stairs.html">🪜 Stairs Tracker</a>
+        <a href="sleep.html">😴 Sleep Manager</a>
     </div>
 
     <div class="header-bar">
@@ -26,14 +27,12 @@
 
     <div class="container" style="margin-top: 0;">
         <h2>👤 Personal Information</h2>
-        <p>Enter your details to calculate BMI & calibrate sleep tracking.</p>
+        <p>Enter your details to calculate BMI & calibrate goals.</p>
 
         <label>Age:</label>
         <input type="number" id="input-age" placeholder="e.g. 25">
-
         <label>Height (cm):</label>
         <input type="number" id="input-height" placeholder="e.g. 175">
-
         <label>Weight (kg):</label>
         <input type="number" id="input-weight" placeholder="e.g. 70">
 
@@ -49,16 +48,18 @@
     <script>
         function openNav() { document.getElementById("mySidenav").style.width = "250px"; document.getElementById("overlay").style.display = "block"; }
         function closeNav() { document.getElementById("mySidenav").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
+        function showToast(msg) {
+            const t = document.getElementById("toast"); t.textContent = msg; t.className = "show";
+            setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
+        }
 
         window.onload = function() {
             const savedAge = localStorage.getItem('profileAge');
             const savedHeight = localStorage.getItem('profileHeight');
             const savedWeight = localStorage.getItem('profileWeight');
-
             if(savedAge) document.getElementById('input-age').value = savedAge;
             if(savedHeight) document.getElementById('input-height').value = savedHeight;
             if(savedWeight) document.getElementById('input-weight').value = savedWeight;
-
             if(savedHeight && savedWeight) calculateBMI(savedHeight, savedWeight);
         };
 
@@ -66,15 +67,13 @@
             const age = document.getElementById('input-age').value;
             const height = document.getElementById('input-height').value;
             const weight = document.getElementById('input-weight').value;
-
-            if(!age || !height || !weight) return alert('Please fill in all fields.');
+            if(!age || !height || !weight) return showToast('Please fill in all fields.');
 
             localStorage.setItem('profileAge', age);
             localStorage.setItem('profileHeight', height);
             localStorage.setItem('profileWeight', weight);
-
             calculateBMI(height, weight);
-            alert('Profile Saved!');
+            showToast('Profile Saved!');
         }
 
         function calculateBMI(h, w) {
@@ -82,7 +81,6 @@
             const bmi = (w / (heightInMeters * heightInMeters)).toFixed(1);
             document.getElementById('bmi-box').style.display = 'block';
             document.getElementById('display-bmi').textContent = bmi;
-
             let category = '';
             if(bmi < 18.5) category = '(Underweight)';
             else if(bmi < 24.9) category = '(Normal weight)';

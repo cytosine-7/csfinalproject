@@ -9,6 +9,7 @@
 </head>
 <body>
     <div id="overlay" onclick="closeNav()"></div>
+    <div id="toast"></div>
 
     <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
@@ -26,38 +27,25 @@
 
     <div class="container" style="margin-top: 0;">
         <h2>😴 Sleep Tracker</h2>
-        <p style="color: #666; font-size: 0.9em; margin-bottom: 20px;">
-            Enter your sleep and wake times. Recommendations are based on your age from the Profile page.
-        </p>
+        <p style="color:#666;font-size:0.9em;">Recommendations based on your age.</p>
 
         <label for="sleepStart">Sleep Time:</label>
         <input id="sleepStart" type="datetime-local">
-
         <label for="sleepEnd">Wake Time:</label>
         <input id="sleepEnd" type="datetime-local">
 
         <button id="addBtn">Add Record</button>
         <div id="alertBox" style="margin-top:10px; text-align: center;"></div>
-
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
 
         <h3>History</h3>
         <div id="summary" style="text-align: center; color: #666; margin-bottom: 10px;">No records yet.</div>
-        
         <div style="overflow-x: auto;">
             <table id="recordsTable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Hours</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Date</th><th>Hours</th><th>Status</th><th>Action</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
-        
         <div style="text-align: center; margin-top: 20px;">
              <button id="clearBtn" class="danger-btn small">Clear History</button>
         </div>
@@ -66,8 +54,11 @@
     <script>
         function openNav() { document.getElementById("mySidenav").style.width = "250px"; document.getElementById("overlay").style.display = "block"; }
         function closeNav() { document.getElementById("mySidenav").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
+        function showToast(msg) {
+            const t = document.getElementById("toast"); t.textContent = msg; t.className = "show";
+            setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
+        }
 
-        // Recommended sleep hours logic
         const recommendations = {
             toddler: {min:11, max:14, label:'11-14h'},
             child: {min:9, max:11, label:'9-11h'},
@@ -75,16 +66,9 @@
             adult: {min:7, max:9, label:'7-9h'},
             older: {min:7, max:8, label:'7-8h'}
         };
-
-        // Load Age from Profile page (default to 18 if not set)
         const userAge = Number(localStorage.getItem('profileAge') || 18);
-
         function getAgeGroup(age){
-            if(age >= 65) return 'older';
-            if(age >= 18) return 'adult';
-            if(age >= 14) return 'teen';
-            if(age >= 6) return 'child';
-            return 'toddler';
+            if(age >= 65) return 'older'; if(age >= 18) return 'adult'; if(age >= 14) return 'teen'; if(age >= 6) return 'child'; return 'toddler';
         }
 
         const sleepStart = document.getElementById('sleepStart');
@@ -100,70 +84,53 @@
 
         addBtn.addEventListener('click', () => {
             alertBox.innerHTML = '';
-            const s = sleepStart.value; 
-            const e = sleepEnd.value; 
+            const s = sleepStart.value; const e = sleepEnd.value; 
             const ageGroup = getAgeGroup(userAge);
-            
-            if(!s || !e){ return alert('Please fill in both times.'); }
-
-            const start = new Date(s);
-            const end = new Date(e);
-            
-            if(isNaN(start) || isNaN(end)) return alert('Invalid time format.');
-            if(end <= start) return alert('Wake time must be after sleep time.');
+            if(!s || !e) return showToast('Please fill in both times.');
+            const start = new Date(s); const end = new Date(e);
+            if(isNaN(start) || isNaN(end)) return showToast('Invalid time format.');
+            if(end <= start) return showToast('Wake time must be after sleep time.');
 
             let diffMs = end - start;
             const hours = Math.round((diffMs/1000/60/60) * 100) / 100;
             const rec = recommendations[ageGroup];
 
             const item = {id: Date.now(), start:s, end:e, hours, ageGroup};
-            records.unshift(item); // Add to top
+            records.unshift(item);
             localStorage.setItem('sleepRecords', JSON.stringify(records));
             render();
 
-            // Feedback
             let msg = '';
-            if(hours < rec.min) msg = `<span class="badge warn">⚠️ Short Sleep (${hours}h)</span>`;
-            else if(hours <= rec.max) msg = `<span class="badge ok">✅ Good Sleep (${hours}h)</span>`;
-            else msg = `<span class="badge ok">✅ Long Sleep (${hours}h)</span>`;
+            if(hours < rec.min) msg = `<span class="badge warn">⚠️ Short Sleep</span>`;
+            else if(hours <= rec.max) msg = `<span class="badge ok">✅ Good Sleep</span>`;
+            else msg = `<span class="badge ok">✅ Long Sleep</span>`;
             
-            alertBox.innerHTML = msg + `<br><small style="color:#666">Recommended: ${rec.label}</small>`;
+            alertBox.innerHTML = msg + `<br><small style="color:#666">Range: ${rec.label}</small>`;
+            showToast('Added');
         });
 
         clearBtn.addEventListener('click', ()=>{
-            if(!confirm('Clear all history?')) return;
-            records = []; 
-            localStorage.removeItem('sleepRecords'); 
-            render();
-            alertBox.innerHTML = '';
+            if(!confirm('Clear history?')) return;
+            records = []; localStorage.removeItem('sleepRecords'); render();
+            alertBox.innerHTML = ''; showToast('Cleared');
         });
 
         function render(){
             recordsTableBody.innerHTML = '';
             if(records.length === 0){ summary.style.display = 'block'; return; }
             summary.style.display = 'none';
-
             for(const r of records){
                 const tr = document.createElement('tr');
                 const s = new Date(r.start);
-                const dateTxt = s.toLocaleDateString();
                 const rec = recommendations[r.ageGroup];
-                
-                let badgeClass = 'ok';
-                let statusText = 'Good';
+                let badgeClass = 'ok'; let statusText = 'Good';
                 if (r.hours < rec.min) { badgeClass = 'warn'; statusText = 'Short'; }
                 else if (r.hours > rec.max) { statusText = 'Long'; }
 
-                tr.innerHTML = `
-                  <td>${dateTxt}</td>
-                  <td>${r.hours}</td>
-                  <td><span class="badge ${badgeClass}">${statusText}</span></td>
-                  <td style="text-align:center"><button class="danger-btn small" onclick="deleteRecord(${r.id})">×</button></td>
-                `;
+                tr.innerHTML = `<td>${s.toLocaleDateString()}</td><td>${r.hours}</td><td><span class="badge ${badgeClass}">${statusText}</span></td><td style="text-align:center"><button class="danger-btn small" onclick="deleteRecord(${r.id})">×</button></td>`;
                 recordsTableBody.appendChild(tr);
             }
         }
-
         window.deleteRecord = function(id) {
             records = records.filter(x => x.id !== id);
             localStorage.setItem('sleepRecords', JSON.stringify(records));

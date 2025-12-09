@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>.header-bar { background-color: transparent; }</style>
 </head>
 <body>
     <div id="overlay" onclick="closeNav()"></div>
+    <div id="toast"></div>
 
     <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
@@ -16,8 +18,8 @@
         <a href="profile.html">👤 User Profile</a>
         <a href="water.html">💧 Water Tracker</a>
         <a href="sedentary.html">🪑 Sedentary Timer</a>
-        <a href="sleep.html">😴 Sleep Manager</a>
         <a href="stairs.html">🪜 Stairs Tracker</a>
+        <a href="sleep.html">😴 Sleep Manager</a>
     </div>
 
     <div class="header-bar">
@@ -45,6 +47,11 @@
                 <span id="bmi-text" style="font-size:0.8em">--</span>
             </div>
         </div>
+
+        <div class="stat-card" style="margin-top: 20px; border: none; background: white; padding: 0;">
+            <h3>📊 7-Day Water Intake</h3>
+            <canvas id="waterChart"></canvas>
+        </div>
         
         <div style="text-align: center; margin-top: 40px;">
             <button onclick="clearAllData()" class="secondary" style="width: auto; font-size: 0.9em;">Clear All Data</button>
@@ -54,22 +61,21 @@
     <script>
         function openNav() { document.getElementById("mySidenav").style.width = "250px"; document.getElementById("overlay").style.display = "block"; }
         function closeNav() { document.getElementById("mySidenav").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
+        function showToast(msg) {
+            const t = document.getElementById("toast"); t.textContent = msg; t.className = "show";
+            setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
+        }
 
         window.onload = function() {
-            // 1. Water
             const water = localStorage.getItem('totalWater') || 0;
             document.getElementById('display-water').textContent = water;
 
-            // 2. Sleep (讀取紀錄列表中的第一筆)
             const sleepData = localStorage.getItem('sleepRecords');
             if (sleepData) {
                 const records = JSON.parse(sleepData);
-                if (records.length > 0) {
-                    document.getElementById('display-sleep').textContent = records[0].hours;
-                }
+                if (records.length > 0) document.getElementById('display-sleep').textContent = records[0].hours;
             }
 
-            // 3. BMI
             const h = localStorage.getItem('profileHeight');
             const w = localStorage.getItem('profileWeight');
             if(h && w) {
@@ -77,13 +83,36 @@
                 const bmi = (w / (heightInMeters * heightInMeters)).toFixed(1);
                 document.getElementById('display-bmi').textContent = bmi;
             }
+            renderChart();
         };
 
-        function clearAllData() {
-            if(confirm('Are you sure you want to clear all data?')) {
-                localStorage.clear();
-                location.reload();
+        function renderChart() {
+            const records = JSON.parse(localStorage.getItem('waterRecords') || '[]');
+            const labels = [];
+            const data = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toLocaleDateString();
+                labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
+                const dayTotal = records.filter(r => r.date === dateStr).reduce((sum, r) => sum + r.amount, 0);
+                data.push(dayTotal);
             }
+
+            const ctx = document.getElementById('waterChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{ label: 'Water (mL)', data: data, backgroundColor: '#3498db', borderRadius: 5 }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function clearAllData() {
+            if(confirm('Are you sure you want to clear all data?')) { localStorage.clear(); location.reload(); }
         }
     </script>
 </body>

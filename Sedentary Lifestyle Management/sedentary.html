@@ -9,6 +9,8 @@
 </head>
 <body>
     <div id="overlay" onclick="closeNav()"></div>
+    <div id="toast"></div>
+    <audio id="alarm-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
     <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
@@ -16,8 +18,8 @@
         <a href="profile.html">👤 User Profile</a>
         <a href="water.html">💧 Water Tracker</a>
         <a href="sedentary.html" style="color: white;">🪑 Sedentary Timer</a>
-        <a href="sleep.html">😴 Sleep Manager</a>
         <a href="stairs.html">🪜 Stairs Tracker</a>
+        <a href="sleep.html">😴 Sleep Manager</a>
     </div>
 
     <div class="header-bar">
@@ -26,21 +28,29 @@
 
     <div class="container" style="margin-top: 0;">
         <h2>🪑 Sedentary Reminder</h2>
-        <p>Set a timer (e.g., 30 mins) to remind yourself to get up and move.</p>
+        <p>Set a timer (e.g., 30 mins) to remind yourself to get up.</p>
 
         <div id="sedentary-timer-display">30:00</div>
-
         <button id="start-sedentary-timer">Start 30-Min Timer</button>
         <button id="reset-sedentary-timer" class="secondary">Reset Timer</button>
+
+        <div style="text-align:center; margin-top:20px;">
+            <button onclick="testSound()" class="small" style="background:#6c757d; font-size:0.8em;">🔊 Test Sound</button>
+        </div>
     </div>
 
     <script>
         function openNav() { document.getElementById("mySidenav").style.width = "250px"; document.getElementById("overlay").style.display = "block"; }
         function closeNav() { document.getElementById("mySidenav").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
+        function showToast(msg) {
+            const t = document.getElementById("toast"); t.textContent = msg; t.className = "show";
+            setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
+        }
 
         const startTimerBtn = document.getElementById('start-sedentary-timer');
         const resetTimerBtn = document.getElementById('reset-sedentary-timer');
         const timerDisplay = document.getElementById('sedentary-timer-display');
+        const audio = document.getElementById('alarm-sound');
         
         let timerInterval;
         let secondsRemaining = 30 * 60; 
@@ -54,14 +64,16 @@
 
         startTimerBtn.addEventListener('click', () => {
             if (timerInterval) clearInterval(timerInterval);
+            audio.load();
+            showToast("Timer Started!");
 
             timerInterval = setInterval(() => {
                 secondsRemaining--;
                 updateTimerDisplay();
-
                 if (secondsRemaining <= 0) {
                     clearInterval(timerInterval);
-                    alert('Time is up! Get up and move around!');
+                    audio.play().catch(e => console.log(e));
+                    alert('Time is up! Get up!');
                     secondsRemaining = defaultMinutes * 60;
                     updateTimerDisplay();
                 }
@@ -72,8 +84,14 @@
             if (timerInterval) clearInterval(timerInterval);
             secondsRemaining = defaultMinutes * 60;
             updateTimerDisplay();
+            showToast("Timer Reset");
         });
 
+        function testSound() {
+            audio.currentTime = 0;
+            audio.play();
+            showToast("Playing Sound...");
+        }
         updateTimerDisplay();
     </script>
 </body>
