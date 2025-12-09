@@ -50,7 +50,7 @@
             </div>
             <div>
                 <label>Calories (kcal):</label>
-                <input type="number" id="ex-calories" placeholder="e.g. 200">
+                <input type="number" id="ex-calories" placeholder="Auto-calculated" readonly>
             </div>
         </div>
 
@@ -82,10 +82,30 @@
         function addExercise() {
             const type = document.getElementById('ex-type').value;
             const duration = document.getElementById('ex-duration').value;
-            const calories = document.getElementById('ex-calories').value;
+            const MET_VALUES = {
+            "Running": 8.0,
+            "Cycling": 7.5,
+            "Gym/Weights": 6.0,
+            "Yoga": 3.0,
+            "Swimming": 6.0,
+            "Walking": 3.5,
+            "Other": 4.0
+            };
+
 
             if(!duration || duration <= 0) return showToast('Please enter a valid duration.');
 
+            const weight = parseFloat(localStorage.getItem('profileWeight'));
+
+            if (!weight || weight <= 0) {
+            return showToast("⚠ Please set your weight in the User Profile first.");
+            }
+
+            const met = MET_VALUES[type];
+            const durationHours = duration / 60;
+
+            const calories = Math.round(met * weight * durationHours);
+            
             const record = {
                 id: Date.now(),
                 date: new Date().toLocaleDateString(), 
