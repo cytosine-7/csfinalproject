@@ -16,8 +16,13 @@ try:
     response.encoding = 'utf-8-sig' 
     df = pd.read_csv(io.StringIO(response.text))
     
-    # === 設定存檔路徑 (修改這裡：存入資料夾內) ===
+# === 設定存檔路徑 (修改這裡：存入資料夾內) ===
     target_folder = 'Sedentary_Lifestyle_Management'
+    
+    # ⚠️ 新增這一行：如果資料夾不存在，就創建它
+    if not os.path.exists(target_folder):
+        os.makedirs(target_folder, exist_ok=True)
+        
     filename = os.path.join(target_folder, 'food_database.json')
     backup_filename = os.path.join(target_folder, 'food_database.backup.json')
     # ==========================================
