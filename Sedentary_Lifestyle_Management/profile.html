@@ -1,96 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
-    <link rel="stylesheet" href="style.css">
-    <style>.header-bar { background-color: transparent; }</style>
-</head>
-<body>
-    <div id="overlay" onclick="closeNav()"></div>
-    <div id="toast"></div>
+<script>
+    // ... (其他 profile.html 腳本內容)
 
-        <div id="mySidenav" class="sidenav">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        <a href="index.html">📊 Dashboard</a>
-        <a href="profile.html">👤 User Profile</a>
-        <a href="diet.html">🍎 Diet Tracker</a>
-        <a href="walking.html">👣 Walking</a>
-        <a href="water.html">💧 Water Tracker</a>
-        <a href="sedentary.html">🪑 Sedentary Timer</a>
-        <a href="stairs.html">🪜 Stairs Tracker</a>
-        <a href="sleep.html">😴 Sleep Manager</a>
-        <a href="exercise.html">🏃 Exercise</a>
-    </div>
+    // 驗證並計算 TDEE 的函式
+    window.saveProfile = function() {
+        const gender = document.getElementById('gender').value;
+        const weight = parseFloat(document.getElementById('weight').value); // kg
+        const height = parseFloat(document.getElementById('height').value); // cm
+        const age = parseFloat(document.getElementById('age').value);
+        const activity = document.getElementById('activity').value; // 活動係數
 
-    <div class="header-bar">
-        <span class="menu-icon" onclick="openNav()">&#9776;</span>
-    </div>
-
-    <div class="container" style="margin-top: 0;">
-        <h2>👤 Personal Information</h2>
-        <p>Enter your details to calculate BMI & calibrate goals.</p>
-
-        <label>Age:</label>
-        <input type="number" id="input-age" placeholder="e.g. 25">
-        <label>Height (cm):</label>
-        <input type="number" id="input-height" placeholder="e.g. 175">
-        <label>Weight (kg):</label>
-        <input type="number" id="input-weight" placeholder="e.g. 70">
-
-        <button onclick="saveProfile()">Save & Calculate BMI</button>
-
-        <div id="bmi-box" class="bmi-result">
-            <h3>Your BMI</h3>
-            <div class="bmi-value" id="display-bmi">--</div>
-            <p id="bmi-category" style="color: #666; margin-bottom:0;"></p>
-        </div>
-    </div>
-
-    <script>
-        function openNav() { document.getElementById("mySidenav").style.width = "250px"; document.getElementById("overlay").style.display = "block"; }
-        function closeNav() { document.getElementById("mySidenav").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
-        function showToast(msg) {
-            const t = document.getElementById("toast"); t.textContent = msg; t.className = "show";
-            setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
+        if (!weight || !height || !age || !activity) {
+            alert("Please fill in all profile fields.");
+            return;
         }
 
-        window.onload = function() {
-            const savedAge = localStorage.getItem('profileAge');
-            const savedHeight = localStorage.getItem('profileHeight');
-            const savedWeight = localStorage.getItem('profileWeight');
-            if(savedAge) document.getElementById('input-age').value = savedAge;
-            if(savedHeight) document.getElementById('input-height').value = savedHeight;
-            if(savedWeight) document.getElementById('input-weight').value = savedWeight;
-            if(savedHeight && savedWeight) calculateBMI(savedHeight, savedWeight);
-        };
-
-        function saveProfile() {
-            const age = document.getElementById('input-age').value;
-            const height = document.getElementById('input-height').value;
-            const weight = document.getElementById('input-weight').value;
-            if(!age || !height || !weight) return showToast('Please fill in all fields.');
-
-            localStorage.setItem('profileAge', age);
-            localStorage.setItem('profileHeight', height);
-            localStorage.setItem('profileWeight', weight);
-            calculateBMI(height, weight);
-            showToast('Profile Saved!');
+        // 1. 計算基礎代謝率 (BMR) - 使用 Mifflin-St Jeor 公式
+        let bmr = 0;
+        if (gender === 'male') {
+            bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+        } else { // female
+            bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
         }
 
-        function calculateBMI(h, w) {
-            const heightInMeters = h / 100;
-            const bmi = (w / (heightInMeters * heightInMeters)).toFixed(1);
-            document.getElementById('bmi-box').style.display = 'block';
-            document.getElementById('display-bmi').textContent = bmi;
-            let category = '';
-            if(bmi < 18.5) category = '(Underweight)';
-            else if(bmi < 24.9) category = '(Normal weight)';
-            else if(bmi < 29.9) category = '(Overweight)';
-            else category = '(Obese)';
-            document.getElementById('bmi-category').textContent = category;
+        // 2. 應用活動係數計算 TDEE
+        let activityFactor = 1.2;
+        switch (activity) {
+            case 'light': activityFactor = 1.375; break;
+            case 'moderate': activityFactor = 1.55; break;
+            case 'heavy': activityFactor = 1.725; break;
+            case 'very_heavy': activityFactor = 1.9; break;
         }
-    </script>
-</body>
-</html>
+        
+        const tdee = bmr * activityFactor;
+
+        // 3. 儲存到 localStorage
+        localStorage.setItem('profileSaved', 'true');
+        localStorage.setItem('gender', gender);
+        localStorage.setItem('weight', weight);
+        localStorage.setItem('height', height);
+        localStorage.setItem('age', age);
+        localStorage.setItem('activity', activity);
+        localStorage.setItem('tdee', tdee.toFixed(0)); // 儲存 TDEE (每日應攝取熱量)
+
+        alert(`Profile saved! Your estimated TDEE is ${tdee.toFixed(0)} kcal.`);
+        showToast('Profile saved successfully!');
+    }
+    
+    // ... (其他 profile.html 腳本內容)
+</script>

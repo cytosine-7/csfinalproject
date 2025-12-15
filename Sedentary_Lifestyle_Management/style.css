@@ -93,7 +93,7 @@ h2 {
     padding: 15px;
     border-radius: 8px;
     border: 1px solid #e1e3e7;
-    box-shadow: none; /* 移除卡片雙重陰影 */
+    box-shadow: none;
     margin-bottom: 20px;
 }
 
@@ -112,7 +112,7 @@ h2 {
     transition: width 0.5s;
 }
 
-/* Toast Notification (維持不變) */
+/* Toast Notification */
 #toast {
     visibility: hidden;
     min-width: 250px;
@@ -179,7 +179,7 @@ button:disabled {
 }
 
 .danger-btn {
-    background-color: #eb4d4b; /* 更新顏色 */
+    background-color: #eb4d4b;
     color: white;
 }
 .danger-btn:hover:not(:disabled) {
@@ -192,12 +192,12 @@ button:disabled {
 }
 
 /* 輸入框樣式 */
-input[type="text"] {
+input[type="text"], input[type="number"] {
     width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
-    box-sizing: border-box; /* 確保 padding 不會撐大寬度 */
+    box-sizing: border-box;
 }
 
 /* --- 搜尋結果列表樣式 --- */

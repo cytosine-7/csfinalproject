@@ -79,7 +79,7 @@
     </div>
 
     <script>
-        // --- Navigation and General Functions (Checked and verified) ---
+        // --- Navigation and General Functions (漢堡選單修復) ---
         function openNav() {
             document.getElementById("mySidenav").style.width = "250px";
             document.getElementById("overlay").style.display = "block";
@@ -24106,7 +24106,7 @@
             portionInput.addEventListener('input', previewPortion);
         });
         
-        // 🚨 更新：移除 "simulate" 詞彙，改為 triggerDBUpdate
+        // 🚨 更新：資料庫更新函式
         window.triggerDBUpdate = function() {
             updateButton.disabled = true;
             updateButton.innerHTML = '<span class="loading-spinner"></span> Updating...';
@@ -24125,7 +24125,7 @@
             }, 3000); 
         }
 
-        // 2. Data Processing and Field Mapping (維持不變)
+        // 2. Data Processing and Field Mapping
         function processEmbeddedFoodDatabase() {
              updateStatus.textContent = 'Processing data...';
              updateStatus.style.color = '#1877f2';
@@ -24205,7 +24205,6 @@
         // 🚨 顯示內嵌輸入介面 (維持不變)
         window.selectFoodForInput = function(food) {
             selectedFood = food; 
-            
             quantityArea.style.display = 'block';
             selectedFoodName.textContent = `${food.zh} ${food.en ? `(${food.en})` : ''}`;
             portionInput.value = 100; 
@@ -24240,7 +24239,7 @@
             const finalCarbs = food.carbs * ratio;
 
             portionPreview.innerHTML = `
-                **Preview:** ${grams.toFixed(0)}g = 
+                <strong>Preview:</strong> ${grams.toFixed(0)}g = 
                 <span style="color:#e67e22;">${finalCal.toFixed(1)} kcal</span> | 
                 P: ${finalProtein.toFixed(1)}g | 
                 F: ${finalFat.toFixed(1)}g | 
@@ -24312,35 +24311,43 @@
         // 8. Load Food Log (維持不變)
         function loadFoodLog() {
             todayFoods = JSON.parse(localStorage.getItem('todayFoods') || '[]').map(f => ({
-                id: f.id, 
-                name: f.name, 
-                en: f.en || '', 
-                cal: f.cal,
-                protein: f.protein || 0, 
-                fat: f.fat || 0, 
-                carbs: f.carbs || 0,
+                id: f.id, name: f.name, en: f.en || '', 
+                cal: f.cal, protein: f.protein || 0, fat: f.fat || 0, carbs: f.carbs || 0,
                 grams: f.grams || 0
             }));
         }
 
-        // 9. Update Dashboard (維持不變)
+        // 9. Update Dashboard (Profile/Dashboard 整合)
         function updateDashboard() {
-            const tdee = parseFloat(localStorage.getItem('tdee') || 2000); 
+            // 🚨 PROFILE 整合：載入 TDEE，如果沒有則提示
+            let tdee = parseFloat(localStorage.getItem('tdee')); 
+            
+            if (isNaN(tdee) || tdee === 0) {
+                tdee = 2000; // 預設值
+                document.getElementById('target-cal').textContent = '--';
+                document.getElementById('status-text').textContent = "(Set TDEE in Profile!)";
+                document.getElementById('status-text').style.color = "orange";
+            } else {
+                document.getElementById('target-cal').textContent = tdee.toFixed(0);
+            }
+            
             const displayTotal = document.getElementById('current-cal');
             const targetDisplay = document.getElementById('target-cal');
             const progressBar = document.getElementById('progress-bar');
             const statusText = document.getElementById('status-text');
 
-            const total = todayFoods.reduce((acc, f) => acc + f.cal, 0);
+            const totalCal = todayFoods.reduce((acc, f) => acc + f.cal, 0);
+            const totalProtein = todayFoods.reduce((acc, f) => acc + (f.protein || 0), 0);
+            const totalFat = todayFoods.reduce((acc, f) => acc + (f.fat || 0), 0);
+            const totalCarbs = todayFoods.reduce((acc, f) => acc + (f.carbs || 0), 0);
 
-            displayTotal.textContent = total.toFixed(1);
-            localStorage.setItem('todayCalories', total);
 
-            targetDisplay.textContent = tdee;
-            const pct = Math.min(100, (total / tdee) * 100);
+            displayTotal.textContent = totalCal.toFixed(1);
+            
+            const pct = Math.min(100, (totalCal / tdee) * 100);
             progressBar.style.width = pct + "%";
             
-            if(total > tdee) {
+            if(totalCal > tdee) {
                 statusText.textContent = "(Surplus ⚠️)";
                 statusText.style.color = "red";
                 progressBar.style.background = "red";
@@ -24353,32 +24360,43 @@
             foodLog.innerHTML = '';
             if (todayFoods.length === 0) {
                 foodLog.innerHTML = '<div style="text-align:center; color:#999; margin-top:20px;">No food logged yet.</div>';
-                return;
+            } else {
+                 todayFoods.forEach(f => {
+                    const div = document.createElement('div');
+                    div.className = 'food-list-item';
+                    
+                    const displayName = `${f.name} ${f.en ? `(${f.en})` : ''}`;
+
+                    const logNutrition = `
+                        <div class="nutrition-detail">
+                            Portion: ${f.grams.toFixed(0)}g | P: ${f.protein.toFixed(1)}g | F: ${f.fat.toFixed(1)}g | C: ${f.carbs.toFixed(1)}g
+                        </div>
+                    `;
+
+                    div.innerHTML = `
+                        <div>
+                            <div style="font-weight:bold;">${displayName}</div>
+                            ${logNutrition}
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="color:#e67e22; font-weight:bold;">${f.cal.toFixed(1)} kcal</span>
+                            <button class="danger-btn small" onclick="deleteFood(${f.id})" style="padding:2px 8px;">×</button>
+                        </div>`;
+                    foodLog.appendChild(div);
+                });
             }
 
-            todayFoods.forEach(f => {
-                const div = document.createElement('div');
-                div.className = 'food-list-item';
-                
-                const displayName = `${f.name} ${f.en ? `(${f.en})` : ''}`;
-
-                const logNutrition = `
-                    <div class="nutrition-detail">
-                        Portion: ${f.grams.toFixed(0)}g | P: ${f.protein.toFixed(1)}g | F: ${f.fat.toFixed(1)}g | C: ${f.carbs.toFixed(1)}g
-                    </div>
-                `;
-
-                div.innerHTML = `
-                    <div>
-                        <div style="font-weight:bold;">${displayName}</div>
-                        ${logNutrition}
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="color:#e67e22; font-weight:bold;">${f.cal.toFixed(1)} kcal</span>
-                        <button class="danger-btn small" onclick="deleteFood(${f.id})" style="padding:2px 8px;">×</button>
-                    </div>`;
-                foodLog.appendChild(div);
-            });
+            // 🚨 DASHBOARD 整合：儲存當日總結數據
+            const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+            const dailySummary = {
+                calories: totalCal.toFixed(1),
+                protein: totalProtein.toFixed(1),
+                fat: totalFat.toFixed(1),
+                carbs: totalCarbs.toFixed(1),
+                tdee: tdee.toFixed(0),
+                isComplete: totalCal > 0 ? true : false
+            };
+            localStorage.setItem(`dietSummary_${today}`, JSON.stringify(dailySummary));
         }
         
     </script>
