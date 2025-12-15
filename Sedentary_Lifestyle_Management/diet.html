@@ -4,8 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diet Tracker</title>
-    <link rel="stylesheet" href="style.css">
-    <style>.header-bar { background-color: transparent; }</style>
+    <link rel="stylesheet" href="style.css"> 
+    <style>
+        .header-bar { background-color: transparent; }
+        .food-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: default; /* 移除點擊樣式 */
+        }
+    </style>
 </head>
 <body>
     <div id="overlay" onclick="closeNav()"></div>
@@ -31,150 +41,173 @@
     <div class="container" style="margin-top: 0;">
         <h2>🍎 Diet Tracker</h2>
         
-        <div style="overflow: hidden; margin-bottom: 10px;">
-            <button onclick="triggerGitHubUpdate()" id="apiBtn" class="api-btn">⚡ Update DB</button>
+        <div class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
         </div>
-
-        <div class="dashboard-panel">
-            <h3>🔥 Calories Today</h3>
-            <div class="total-cal-display" id="display-total-cal">0</div>
-            <div class="limit-text">
-                Target: <span id="target-cal">--</span> kcal 
-                <span id="status-text">(Calc...)</span>
+        <p style="text-align: right; margin-top: 5px;">
+            <span id="current-cal" style="font-weight: bold; color: #e67e22;">0</span> kcal / <span id="target-cal" style="color: #666;">--</span> kcal 
+            <span id="status-text" style="font-size: small;"></span>
+        </p>
+        
+        <div class="card" style="margin-top: 20px;">
+            <h3>🔍 Search & Add Food</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button onclick="alert('更新功能目前已禁用，若需更新資料，請聯繫管理員或在終端機手動執行 Python 腳本。')">⚡ Update DB</button>
             </div>
-            <div class="progress-bar-bg">
-                <div id="cal-progress" class="progress-bar-fill"></div>
-            </div>
-        </div>
-
-        <div style="position: relative;">
-            <label>Search Food:</label>
-            <div class="search-wrapper">
-                <input type="text" id="food-input" placeholder="e.g. Rice, Egg..." autocomplete="off">
-                <div id="search-results"></div>
+            
+            <input type="text" id="search-box" placeholder="Enter food name (Chinese or English)" onkeyup="filterFood()">
+            
+            <div id="food-search-results">
+                <div style="text-align:center; color:#999; margin-top:20px;">Start typing to search food...</div>
             </div>
         </div>
 
-        <h3 style="margin-top: 30px;">Today's Menu</h3>
-        <div id="food-log">
-            <div style="text-align:center; color:#999; margin-top:20px;">No food logged yet.</div>
+        <div class="card" style="margin-top: 20px;">
+            <h3>🗓️ Today's Log</h3>
+            <div id="food-log">
+                <div style="text-align:center; color:#999; margin-top:20px;">No food logged yet.</div>
+            </div>
+            <button onclick="clearFoodLog()" class="danger-btn" style="margin-top: 15px;">Clear Log</button>
         </div>
-
-        <div style="text-align:center; margin-top:30px;">
-            <button onclick="clearDiet()" class="danger-btn small">Clear All</button>
-        </div>
+        
     </div>
 
     <script>
-        function openNav() { document.getElementById("mySidenav").style.width = "250px"; document.getElementById("overlay").style.display = "block"; }
-        function closeNav() { document.getElementById("mySidenav").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
-        function showToast(msg) {
-            const t = document.getElementById("toast"); t.textContent = msg; t.className = "show";
-            setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
+        // --- 導航列與通用功能 ---
+        function openNav() {
+            document.getElementById("mySidenav").style.width = "250px";
+            document.getElementById("overlay").style.display = "block";
         }
 
-        let foodDatabase = [];
-        fetch('food_database.json')
-            .then(res => res.json())
-            .then(data => { foodDatabase = data; })
-            .catch(e => {
-                foodDatabase = [
-                    { "zh": "白飯", "en": "White Rice", "cal": 280 },
-                    { "zh": "雞胸肉", "en": "Chicken Breast", "cal": 165 },
-                    { "zh": "雞蛋", "en": "Egg", "cal": 78 },
-                    { "zh": "蘋果", "en": "Apple", "cal": 52 },
-                    { "zh": "拿鐵", "en": "Latte", "cal": 190 }
-                ];
-            });
-
-        let todayFoods = JSON.parse(localStorage.getItem('dietRecords') || '[]');
-        
-        const pWeight = Number(localStorage.getItem('profileWeight')) || 70;
-        const pHeight = Number(localStorage.getItem('profileHeight')) || 170;
-        const pAge = Number(localStorage.getItem('profileAge')) || 25;
-        
-        let bmr = (10 * pWeight) + (6.25 * pHeight) - (5 * pAge) - 78;
-        let tdee = Math.round(bmr * 1.2); 
-
-        const searchInput = document.getElementById('food-input');
-        const resultsBox = document.getElementById('search-results');
-        const foodLog = document.getElementById('food-log');
-        const displayTotal = document.getElementById('display-total-cal');
-        const targetDisplay = document.getElementById('target-cal');
-        const statusText = document.getElementById('status-text');
-        const progressBar = document.getElementById('cal-progress');
-
-        function triggerGitHubUpdate() {
-            if(!confirm("Update Database via GitHub?")) return;
-            const btn = document.getElementById('apiBtn');
-            btn.disabled = true; btn.textContent = "Requesting...";
-
-            fetch('/api/trigger') 
-            .then(response => {
-                if(response.ok) showToast("Update triggered");
-                else showToast("API Error");
-                btn.disabled = false; btn.textContent = "⚡ Update DB";
-            })
-            .catch(err => {
-                showToast("Network Error");
-                btn.disabled = false; btn.textContent = "⚡ Update DB";
-            });
+        function closeNav() {
+            document.getElementById("mySidenav").style.width = "0";
+            document.getElementById("overlay").style.display = "none";
         }
 
-        searchInput.addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase();
-            resultsBox.innerHTML = '';
-            if (val.length < 1) { resultsBox.style.display = 'none'; return; }
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
 
-            const matches = foodDatabase.filter(item => 
-                item.zh.includes(val) || (item.en && item.en.toLowerCase().includes(val))
-            );
+        // --- 核心飲食追蹤邏輯 ---
+        let foodDatabase = []; // 儲存從 JSON 載入的食物資料
+        let todayFoods = [];   // 儲存今日已記錄的食物
+        let foodLog = document.getElementById('food-log');
+        let foodSearchResults = document.getElementById('food-search-results');
 
-            if (matches.length > 0) {
-                resultsBox.style.display = 'block';
-                matches.slice(0, 10).forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'result-item';
-                    div.innerHTML = `<span class="food-name">${item.zh}</span><span class="food-cal">${item.cal} kcal</span>`;
-                    div.onclick = () => addFood(item);
-                    resultsBox.appendChild(div);
+        // 頁面載入時執行
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFoodDatabase();
+            loadFoodLog();
+            updateDashboard();
+        });
+
+        // 1. 載入食物資料庫 (從 food_database.json 讀取)
+        function loadFoodDatabase() {
+            foodSearchResults.innerHTML = '<div style="text-align:center; color:#007bff; margin-top:20px;">Loading database...</div>';
+            
+            // 🚨 這是關鍵！確保路徑正確
+            fetch('./food_database.json') 
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    foodDatabase = data;
+                    console.log('Food database loaded successfully! Total items:', foodDatabase.length);
+                    foodSearchResults.innerHTML = '<div style="text-align:center; color:#999; margin-top:20px;">Start typing to search food...</div>';
+                })
+                .catch(error => {
+                    console.error('Error fetching or parsing food database:', error);
+                    foodSearchResults.innerHTML = `<div style="text-align:center; color:red; margin-top:20px;">🚨 Error loading database! (${error.message})</div>`;
                 });
-            } else {
-                resultsBox.style.display = 'none';
+        }
+        
+        // 2. 搜尋函數 (Search Handler)
+        window.filterFood = function() {
+            const query = document.getElementById('search-box').value.toLowerCase().trim();
+            if (query.length < 1) {
+                displaySearchResults([]);
+                return;
             }
-        });
 
-        document.addEventListener('click', (e) => {
-            if (e.target !== searchInput) resultsBox.style.display = 'none';
-        });
+            const filtered = foodDatabase.filter(food => {
+                // 搜尋中文 (zh) 或 英文 (en) 欄位
+                return (food.zh && food.zh.toLowerCase().includes(query)) ||
+                       (food.en && food.en.toLowerCase().includes(query));
+            });
 
-        function addFood(item) {
-            const record = { id: Date.now(), name: item.zh, cal: Number(item.cal) };
-            todayFoods.unshift(record);
-            saveAndRender();
-            searchInput.value = '';
-            resultsBox.style.display = 'none';
-            showToast(`Added: ${item.zh}`);
+            displaySearchResults(filtered.slice(0, 15)); // 只顯示前 15 筆結果
+        }
+        
+        // 3. 顯示結果函數
+        function displaySearchResults(results) {
+            foodSearchResults.innerHTML = '';
+            
+            if (results.length === 0 && document.getElementById('search-box').value.length > 0) {
+                foodSearchResults.innerHTML = '<div style="text-align:center; color:#999; margin-top:20px;">No results found.</div>';
+                return;
+            }
+            
+            results.forEach(food => {
+                const div = document.createElement('div');
+                div.className = 'food-list-item clickable';
+                
+                // 顯示中英文名稱
+                const displayName = `${food.zh} ${food.en ? `(${food.en})` : ''}`;
+                
+                div.innerHTML = `<div><div style="font-weight:bold;">${displayName}</div></div><div style="display:flex; align-items:center; gap:10px;"><span style="color:#e67e22; font-weight:bold;">${food.cal} kcal</span><button class="primary-btn small" onclick="logFood('${food.zh.replace(/'/g, "\\'")}', ${food.cal})" style="padding:2px 8px;">+</button></div>`;
+                foodSearchResults.appendChild(div);
+            });
         }
 
+        // 4. 記錄食物
+        window.logFood = function(name, cal) {
+            const newId = todayFoods.length > 0 ? Math.max(...todayFoods.map(f => f.id)) + 1 : 1;
+            todayFoods.push({ id: newId, name: name, cal: parseFloat(cal) });
+            localStorage.setItem('todayFoods', JSON.stringify(todayFoods));
+            showToast(`${name} added!`);
+            updateDashboard();
+        }
+
+        // 5. 刪除食物
         window.deleteFood = function(id) {
             todayFoods = todayFoods.filter(f => f.id !== id);
-            saveAndRender();
+            localStorage.setItem('todayFoods', JSON.stringify(todayFoods));
+            showToast('Item deleted!');
+            updateDashboard();
         }
 
-        window.clearDiet = function() {
-            if(confirm('Clear all?')) {
+        // 6. 清除所有食物紀錄
+        window.clearFoodLog = function() {
+            if(confirm('Are you sure you want to clear today\'s food log?')) {
                 todayFoods = [];
-                saveAndRender();
-                showToast('Cleared');
+                localStorage.removeItem('todayFoods');
+                showToast('Log Cleared!');
+                updateDashboard();
             }
         }
 
-        function saveAndRender() {
-            localStorage.setItem('dietRecords', JSON.stringify(todayFoods));
+        // 7. 載入今日食物紀錄
+        function loadFoodLog() {
+            todayFoods = JSON.parse(localStorage.getItem('todayFoods') || '[]');
+        }
+
+        // 8. 更新儀表板顯示 (計算總熱量和進度條)
+        function updateDashboard() {
+            const tdee = parseFloat(localStorage.getItem('tdee') || 2000); // 假設從 profile 載入 TDEE，預設 2000
             
-            const total = todayFoods.reduce((sum, item) => sum + item.cal, 0);
-            displayTotal.textContent = total;
+            const displayTotal = document.getElementById('current-cal');
+            const targetDisplay = document.getElementById('target-cal');
+            const progressBar = document.getElementById('progress-bar');
+            const statusText = document.getElementById('status-text');
+
+            const total = todayFoods.reduce((acc, f) => acc + f.cal, 0);
+            displayTotal.textContent = total.toFixed(1);
             localStorage.setItem('todayCalories', total);
 
             targetDisplay.textContent = tdee;
@@ -200,12 +233,11 @@
             todayFoods.forEach(f => {
                 const div = document.createElement('div');
                 div.className = 'food-list-item';
-                div.innerHTML = `<div><div style="font-weight:bold;">${f.name}</div></div><div style="display:flex; align-items:center; gap:10px;"><span style="color:#e67e22; font-weight:bold;">${f.cal}</span><button class="danger-btn small" onclick="deleteFood(${f.id})" style="padding:2px 8px;">×</button></div>`;
+                // 確保卡路里顯示為一位小數
+                div.innerHTML = `<div><div style="font-weight:bold;">${f.name}</div></div><div style="display:flex; align-items:center; gap:10px;"><span style="color:#e67e22; font-weight:bold;">${f.cal.toFixed(1)} kcal</span><button class="danger-btn small" onclick="deleteFood(${f.id})" style="padding:2px 8px;">×</button></div>`;
                 foodLog.appendChild(div);
             });
         }
-
-        saveAndRender();
     </script>
 </body>
 </html>
